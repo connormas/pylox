@@ -12,9 +12,7 @@ def main():
     else:
         repl()
 
-
 def run(source):
-    print('SOURCE: ' + source)
     scannner = sc.Scanner(source)
     tokens = scannner.scanTokens()
 

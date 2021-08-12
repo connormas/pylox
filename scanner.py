@@ -1,26 +1,46 @@
 import token 
 
+'''
+all tokens (for reference)
+# single-character tokens
+'LEFT_PAREN', 'RIGHT_PAREN', 'LEFT_BRACE', 'RIGHT_BRACE', 
+'COMMA', 'DOT', 'MINUS', 'PLUS', 'SEMICOLON', 'SLASH', 'STAR', 
+
+# one or two char tokens
+'BANG', 'BANG_EQUAL',
+'EQUAL', 'EQUAL_EQUAL',
+'GREATER', 'GREATER_EQUAL',
+'LESS', 'LESS_EQUAL',
+
+# literals
+'IDENTIFIER', 'STRING', 'NUMBER',
+
+# keywords
+'AND', 'CLASS', 'ELSE', 'FALSE', 'FUN', 'FOR', 'IF', 'NIL', 'OR',
+'PRINT', 'RETURN', 'SUPER', 'THIS', 'TRUE', 'VAR', 'WHILE',
+'EOF'
+'''
+
 class Scanner():
- 
-    Tokens = [
-        # single-character tokens
-        'LEFT_PAREN', 'RIGHT_PAREN', 'LEFT_BRACE', 'RIGHT_BRACE', 
-        'COMMA', 'DOT', 'MINUS', 'PLUS', 'SEMICOLON', 'SLASH', 'STAR', 
-        
-        # one or two char tokens
-        'BANG', 'BANG_EQUAL',
-        'EQUAL', 'EQUAL_EQUAL',
-        'GREATER', 'GREATER_EQUAL',
-        'LESS', 'LESS_EQUAL',
-        
-        # literals
-        'IDENTIFIER', 'STRING', 'NUMBER',
-        
-        # keywords
-        'AND', 'CLASS', 'ELSE', 'FALSE', 'FUN', 'FOR', 'IF', 'NIL', 'OR',
-        'PRINT', 'RETURN', 'SUPER', 'THIS', 'TRUE', 'VAR', 'WHILE',
-        'EOF'
-    ]
+    
+    keywords = {
+        'and':'AND',
+        'class':'CLASS', 
+        'else':'ELSE',
+        'false':'FALSE',
+        'fun':'FUN',
+        'for':'FOR',
+        'if':'IF',
+        'nil':'NIL',
+        'or':'OR',
+        'print':'PRINT',
+        'return':'RETURN',
+        'super':'SUPER',
+        'this':'THIS',
+        'true':'TRUE',
+        'var':'VAR',
+        'while':'WHILE'
+    }
     
     def __init__(self, source):
         self.source = source
@@ -73,11 +93,17 @@ class Scanner():
     
         elif self.c == '/':
             if self.match('/'):
-                while((self.peek() != '\n') and not self.atEnd()): self.advance()
+                while self.peek() != '\n' and not self.atEnd(): self.advance()
             else:
                 self.addToken('SLASH')
         
-        else: print('Unexpected token!')
+        else: 
+            if (self.c.isdigit()):
+                self.digit()
+            elif (self.c.isalpha()):
+                self.identifier()
+            else:
+                print('Unexpected token!')
 
     def string(self):
         while self.peek() != '"' and not self.atEnd():
@@ -91,7 +117,24 @@ class Scanner():
         value = self.source[self.start+1:self.current-1]
         self.addToken('STRING', value)
         
+    def digit(self):
+        while self.peek().isdigit(): self.advance()
+
+        if (self.peek() == '.' and self.peek(2).isdigit()):
+            self.advance()
+            while self.peek().isdigit(): self.advance()
         
+        self.addToken('NUMBER', float(self.source[self.start:self.current]))
+
+    def identifier(self):
+        while self.isAlphaNumeric(self.peek()): self.advance()
+        
+        text = self.source[self.start:self.current]
+        toktype = Scanner.keywords.get(text, None)
+        self.addToken(toktype)
+
+    def isAlphaNumeric(self, c):
+        return c.isalpha() or c.isdigit()
 
     def advance(self):
         # print('IN ADVANCE: ' + str(self.start) + ' ' + str(self.current))
@@ -113,6 +156,6 @@ class Scanner():
         self.current += 1
         return True
     
-    def peek(self):
-        if self.atEnd(): return '\0'
-        return self.source[self.current]
+    def peek(self, lookahead=1):
+        if self.current+lookahead-1 >= len(self.source): return '\0'
+        return self.source[self.current+lookahead-1]
