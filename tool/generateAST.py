@@ -40,14 +40,3 @@ def generateAST(types, outputdir='../src'):
 
 if __name__ == '__main__':
     main()
-
-
-'''
-class Expr():
-    def __init__(self):
-        pass
-
-class Binary(Expr):
-    def __init__(self, left, operator, right)
-        pass
-'''
